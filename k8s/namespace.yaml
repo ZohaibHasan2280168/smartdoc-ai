@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: smartdoc-ai
+  labels:
+    app.kubernetes.io/name: smartdoc-ai
+    app.kubernetes.io/part-of: smartdoc-platform

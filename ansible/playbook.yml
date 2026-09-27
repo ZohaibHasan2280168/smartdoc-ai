@@ -1,0 +1,58 @@
+---
+- name: Prepare DevOps Machine (Docker, Minikube, Kubectl)
+  hosts: devops_nodes
+  become: yes
+  tasks:
+    - name: Update apt cache
+      apt:
+        update_cache: yes
+        cache_valid_time: 3600
+
+    - name: Install prerequisite packages
+      apt:
+        name:
+          - apt-transport-https
+          - ca-certificates
+          - curl
+          - gnupg
+          - lsb-release
+          - git
+          - jq
+        state: present
+
+    - name: Ensure Docker service is running and enabled
+      service:
+        name: docker
+        state: started
+        enabled: yes
+
+    - name: Add current user to docker group
+      user:
+        name: "{{ ansible_user | default(lookup('env', 'USER')) }}"
+        groups: docker
+        append: yes
+
+    - name: Download kubectl binary
+      get_url:
+        url: "https://dl.k8s.io/release/v1.29.2/bin/linux/amd64/kubectl"
+        dest: /usr/local/bin/kubectl
+        mode: '0755'
+
+    - name: Download Minikube binary
+      get_url:
+        url: "https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64"
+        dest: /usr/local/bin/minikube
+        mode: '0755'
+
+    - name: Verify tools installation
+      command: "{{ item }} --version"
+      loop:
+        - docker
+        - kubectl
+      register: tool_versions
+      changed_when: false
+
+    - name: Display installed versions
+      debug:
+        msg: "{{ item.stdout }}"
+      loop: "{{ tool_versions.results }}"
