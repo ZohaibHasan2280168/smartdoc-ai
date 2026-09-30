@@ -1,43 +1,30 @@
-version: "3.8"
-
 services:
   prometheus:
     image: prom/prometheus:v2.51.0
     container_name: smartdoc-prometheus
     restart: always
+    network_mode: "host"
     volumes:
       - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
       - prometheus_data:/prometheus
     command:
       - "--config.file=/etc/prometheus/prometheus.yml"
       - "--storage.tsdb.path=/prometheus"
-      - "--web.console.libraries=/usr/share/prometheus/console_libraries"
-      - "--web.console.templates=/usr/share/prometheus/consoles"
-    ports:
-      - "9090:9090"
-    networks:
-      - smartdoc-network
+      - "--web.listen-address=0.0.0.0:9090"
 
   grafana:
     image: grafana/grafana:10.4.1
     container_name: smartdoc-grafana
     restart: always
-    ports:
-      - "3001:3000"
+    network_mode: "host"
     environment:
       - GF_SECURITY_ADMIN_USER=admin
       - GF_SECURITY_ADMIN_PASSWORD=admin
       - GF_USERS_ALLOW_SIGN_UP=false
+      - GF_SERVER_HTTP_PORT=3001
     volumes:
       - grafana_data:/var/lib/grafana
-    depends_on:
-      - prometheus
-    networks:
-      - smartdoc-network
-
-networks:
-  smartdoc-network:
-    external: true
+      - ./grafana/provisioning/datasources:/etc/grafana/provisioning/datasources:ro
 
 volumes:
   prometheus_data:

@@ -6,7 +6,7 @@ scrape_configs:
   - job_name: "smartdoc-backend"
     metrics_path: "/metrics"
     static_configs:
-      - targets: ["backend:8000"]
+      - targets: ["localhost:8000"]
         labels:
           service: "smartdoc-backend"
           tier: "application"

@@ -1,0 +1,119 @@
+---
+- name: Automate DevOps Dependencies Setup (Docker, Minikube, Kubectl, Terraform, Helm)
+  hosts: localhost
+  connection: local
+  become: yes
+  vars:
+    target_user: "{{ ansible_env.SUDO_USER | default(lookup('env', 'USER')) }}"
+    terraform_version: "1.9.8"
+    helm_version: "v3.16.2"
+
+  tasks:
+    - name: Update apt cache
+      apt:
+        update_cache: yes
+        cache_valid_time: 3600
+
+    - name: Install essential apt packages and DevOps tools
+      apt:
+        name:
+          - curl
+          - wget
+          - git
+          - jq
+          - unzip
+          - conntrack
+          - socat
+          - ca-certificates
+          - apt-transport-https
+          - docker.io
+          - docker-compose
+          - kubectl
+        state: present
+
+    - name: Ensure Docker service is running and enabled on boot
+      service:
+        name: docker
+        state: started
+        enabled: yes
+
+    - name: Add target user to the docker group
+      user:
+        name: "{{ target_user }}"
+        groups: docker
+        append: yes
+
+    - name: Download Minikube binary
+      get_url:
+        url: "https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64"
+        dest: /usr/local/bin/minikube
+        mode: '0755'
+
+    - name: Download and install Terraform
+      block:
+        - name: Check if Terraform is already installed
+          command: which terraform
+          register: terraform_check
+          ignore_errors: yes
+          changed_when: false
+
+        - name: Download Terraform binary zip
+          get_url:
+            url: "https://releases.hashicorp.com/terraform/{{ terraform_version }}/terraform_{{ terraform_version }}_linux_amd64.zip"
+            dest: "/tmp/terraform_{{ terraform_version }}.zip"
+            mode: '0644'
+          when: terraform_check.rc != 0
+
+        - name: Unarchive Terraform to /usr/local/bin
+          unarchive:
+            src: "/tmp/terraform_{{ terraform_version }}.zip"
+            dest: /usr/local/bin
+            remote_src: yes
+            mode: '0755'
+          when: terraform_check.rc != 0
+
+    - name: Download and install Helm
+      block:
+        - name: Check if Helm is already installed
+          command: which helm
+          register: helm_check
+          ignore_errors: yes
+          changed_when: false
+
+        - name: Download Helm tarball
+          get_url:
+            url: "https://get.helm.sh/helm-{{ helm_version }}-linux-amd64.tar.gz"
+            dest: "/tmp/helm-{{ helm_version }}.tar.gz"
+            mode: '0644'
+          when: helm_check.rc != 0
+
+        - name: Unarchive Helm to /tmp
+          unarchive:
+            src: "/tmp/helm-{{ helm_version }}.tar.gz"
+            dest: /tmp
+            remote_src: yes
+          when: helm_check.rc != 0
+
+        - name: Move Helm binary to /usr/local/bin
+          copy:
+            src: "/tmp/linux-amd64/helm"
+            dest: "/usr/local/bin/helm"
+            mode: '0755'
+            remote_src: yes
+          when: helm_check.rc != 0
+
+    - name: Verify installed tool versions
+      shell: |
+        echo "=== Installed Tool Versions ==="
+        echo -n "Docker: " && docker --version
+        echo -n "Docker Compose: " && docker-compose --version
+        echo -n "Kubectl: " && kubectl version --client --output=yaml | grep gitVersion | head -n 1
+        echo -n "Minikube: " && minikube version --short
+        echo -n "Terraform: " && terraform version | head -n 1
+        echo -n "Helm: " && helm version --short
+      register: tool_ver_output
+      changed_when: false
+
+    - name: Display verification output
+      debug:
+        msg: "{{ tool_ver_output.stdout_lines }}"

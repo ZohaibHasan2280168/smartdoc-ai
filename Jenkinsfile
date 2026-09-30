@@ -1,19 +1,26 @@
 pipeline {
     agent any
 
+    triggers {
+        githubPush()
+        pollSCM('* * * * *')
+    }
+
     environment {
         DOCKER_REGISTRY = "smartdoc"
         BACKEND_IMAGE   = "smartdoc-backend"
         FRONTEND_IMAGE  = "smartdoc-frontend"
         BUILD_TAG       = "${env.BUILD_NUMBER}"
-        KUBECONFIG      = credentials('kubeconfig-credentials-id')
     }
 
     stages {
         stage('1. Code Checkout & Lint') {
             steps {
                 echo 'Checking out source repository...'
-                sh 'git status'
+                sh '''
+                    git config --global --add safe.directory '*' || true
+                    git status || true
+                '''
                 echo 'Validating Dockerfiles and Kubernetes manifests...'
                 sh 'docker run --rm -i hadolint/hadolint < backend/Dockerfile || true'
             }
@@ -43,6 +50,11 @@ pipeline {
 
         stage('4. Deploy to Kubernetes / Minikube') {
             steps {
+                echo 'Loading newly built images into Minikube cluster...'
+                sh '''
+                    docker save ${BACKEND_IMAGE}:latest | docker exec -i minikube ctr -n k8s.io images import - || true
+                    docker save ${FRONTEND_IMAGE}:latest | docker exec -i minikube ctr -n k8s.io images import - || true
+                '''
                 echo 'Applying Kubernetes manifests to cluster...'
                 sh '''
                     kubectl apply -f k8s/namespace.yaml
@@ -57,8 +69,10 @@ pipeline {
 
         stage('5. Rollout Verification') {
             steps {
-                echo 'Awaiting rollout status...'
+                echo 'Triggering rollout and awaiting status...'
                 sh '''
+                    kubectl -n smartdoc-ai rollout restart deployment/backend || true
+                    kubectl -n smartdoc-ai rollout restart deployment/frontend || true
                     kubectl -n smartdoc-ai rollout status deployment/postgres --timeout=90s
                     kubectl -n smartdoc-ai rollout status deployment/redis --timeout=60s
                     kubectl -n smartdoc-ai rollout status deployment/backend --timeout=120s
@@ -71,7 +85,7 @@ pipeline {
     post {
         always {
             echo 'Pipeline execution finished.'
-            sh 'docker system prune -f || true'
+            sh 'docker image prune -f --filter "dangling=true" || true'
         }
         success {
             echo 'Deployment successfully rolled out to cluster!'

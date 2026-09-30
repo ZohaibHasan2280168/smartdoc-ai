@@ -18,8 +18,8 @@ import {
   Zap,
   BarChart3
 } from "lucide-react";
-import FileUpload from "@/components/FileUpload";
-import AIConsole from "@/components/AIConsole";
+import FileUpload from "../components/FileUpload";
+import AIConsole from "../components/AIConsole";
 
 export default function SmartDocDashboard() {
   const [health, setHealth] = useState(null);
