@@ -166,7 +166,7 @@ export default function SmartDocDashboard() {
               <div className="flex items-center space-x-2">
                 <h1 className="text-lg font-bold tracking-tight text-white">SmartDoc AI</h1>
                 <span className="text-[10px] uppercase font-mono px-2 py-0.5 rounded-full bg-cyan-950 text-cyan-400 border border-cyan-800">
-                  Production Live V2.0 🚀⚡
+                  Production Live V2.0
                 </span>
               </div>
               <p className="text-xs text-slate-400 hidden sm:block">
@@ -301,8 +301,8 @@ export default function SmartDocDashboard() {
                         key={mode.id}
                         onClick={() => setAnalysisMode(mode.id)}
                         className={`text-xs py-2 px-3 rounded-lg border font-medium transition-all ${analysisMode === mode.id
-                            ? "bg-cyan-500/20 border-cyan-400 text-cyan-200 shadow-sm"
-                            : "bg-slate-950/60 border-slate-800 text-slate-400 hover:border-slate-700 hover:text-slate-200"
+                          ? "bg-cyan-500/20 border-cyan-400 text-cyan-200 shadow-sm"
+                          : "bg-slate-950/60 border-slate-800 text-slate-400 hover:border-slate-700 hover:text-slate-200"
                           }`}
                       >
                         {mode.label}
