@@ -166,7 +166,8 @@ export default function SmartDocDashboard() {
               <div className="flex items-center space-x-2">
                 <h1 className="text-lg font-bold tracking-tight text-white">SmartDoc AI</h1>
                 <span className="text-[10px] uppercase font-mono px-2 py-0.5 rounded-full bg-cyan-950 text-cyan-400 border border-cyan-800">
-                  Production Live V2.2
+                  Production Live V2.2!!
+                  {/* Production Live V3.0 (GitOps Powered) 🐙 */}
                 </span>
               </div>
               <p className="text-xs text-slate-400 hidden sm:block">

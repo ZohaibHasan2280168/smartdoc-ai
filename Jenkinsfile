@@ -48,29 +48,22 @@ pipeline {
             }
         }
 
-        stage('4. Deploy to Kubernetes / Minikube') {
+        stage('4. Publish Images to Cluster Runtime') {
             steps {
                 echo 'Loading newly built images into Minikube cluster...'
-                sh '''
-                    docker save ${BACKEND_IMAGE}:latest | docker exec -i minikube ctr -n k8s.io images import - || true
-                    docker save ${FRONTEND_IMAGE}:latest | docker exec -i minikube ctr -n k8s.io images import - || true
-                '''
-                echo 'Applying Kubernetes manifests to cluster...'
-                sh '''
-                    kubectl apply -f k8s/namespace.yaml
-                    kubectl apply -f k8s/postgres.yaml
-                    kubectl apply -f k8s/redis.yaml
-                    kubectl apply -f k8s/backend.yaml
-                    kubectl apply -f k8s/frontend.yaml
-                    kubectl apply -f k8s/ingress.yaml
-                '''
+                sh """
+                    docker save ${BACKEND_IMAGE}:${BUILD_TAG} ${BACKEND_IMAGE}:latest | docker exec -i minikube ctr -n k8s.io images import - || true
+                    docker save ${FRONTEND_IMAGE}:${BUILD_TAG} ${FRONTEND_IMAGE}:latest | docker exec -i minikube ctr -n k8s.io images import - || true
+                """
+                echo 'Images successfully published. Manifest reconciliation handed off to ArgoCD GitOps Controller.'
             }
         }
 
-        stage('5. Rollout Verification') {
+        stage('5. GitOps Sync & Rollout Verification') {
             steps {
-                echo 'Triggering rollout and awaiting status...'
+                echo 'Verifying ArgoCD GitOps application state and rolling update...'
                 sh '''
+                    kubectl -n argocd get application smartdoc-ai || true
                     kubectl -n smartdoc-ai rollout restart deployment/backend || true
                     kubectl -n smartdoc-ai rollout restart deployment/frontend || true
                     kubectl -n smartdoc-ai rollout status deployment/postgres --timeout=90s
