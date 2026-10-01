@@ -57,6 +57,15 @@ This document serves as the institutional memory and historical log of architect
   3. Kept runtime secrets locally on the developer workstation and cluster secrets inside Kubernetes Secrets.
 * **Consequence**: Zero credential or environment configuration leakage to public/remote Git repositories.
 
+### ADR 009: Pure GitOps Automated Image Bumping & ArgoCD Sync
+* **Context**: Using mutable `:latest` tags caused ArgoCD `LAST SYNC` to remain stale when only application code changed, requiring manual rollout restarts.
+* **Decision**: Implemented end-to-end automated GitOps loop:
+  1. Jenkins builds images with immutable tags: `v${BUILD_NUMBER}`.
+  2. Jenkins updates `image: ...:v${BUILD_NUMBER}` in `k8s/frontend.yaml` and `k8s/backend.yaml`.
+  3. Jenkins commits with `[skip ci]` to prevent infinite webhook loops and pushes to GitHub using `github-token`.
+  4. ArgoCD detects manifest updates in Git, syncs the cluster, rolls out pods, and updates `LAST SYNC`.
+* **Consequence**: 100% auditability, zero mutable tags, and pure GitOps compliance.
+
 ---
 
 ## 3. Bug History & Troubleshooting Reference
