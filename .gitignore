@@ -1,16 +1,54 @@
-# Dependencies
+# ==============================================================================
+# SECURITY & SECRETS (STRICTLY IGNORED)
+# ==============================================================================
+**/.env
+**/.env.*
+**/.env*.local
+.env
+.env.*
+*.env
+*.pem
+*.key
+*.pkcs12
+*.pfx
+*.p12
+*.crt
+id_rsa
+id_rsa.pub
+id_ed25519
+id_ed25519.pub
+*.token
+*.credential
+*.credentials
+
+# ==============================================================================
+# TERRAFORM (STATE & SECRETS)
+# ==============================================================================
+**/.terraform/*
+*.tfstate
+*.tfstate.*
+*.tfstate.backup
+crash.log
+crash.*.log
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+.terraformrc
+terraform.rc
+.terraform.lock.hcl
+
+# ==============================================================================
+# DEPENDENCIES & RUNTIMES
+# ==============================================================================
 node_modules/
 .pnp
 .pnp.js
-
-# Testing
-/coverage
-
-# Next.js
 .next/
 out/
 build/
 dist/
+/coverage
 
 # Python
 __pycache__/
@@ -37,26 +75,12 @@ wheels/
 .installed.cfg
 *.egg
 
-# Terraform
-**/.terraform/*
-*.tfstate
-*.tfstate.*
-crash.log
-crash.*.log
-override.tf
-override.tf.json
-*_override.tf
-*_override.tf.json
-.terraformrc
-terraform.rc
-
-# Environment variables & secrets
-.env
-.env*.local
-.env.production
-
-# IDE & OS
+# ==============================================================================
+# OS & IDE
+# ==============================================================================
 .vscode/
 .idea/
 .DS_Store
 *.swp
+*.swo
+*.log
