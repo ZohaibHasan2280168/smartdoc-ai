@@ -45,7 +45,7 @@ spec:
     spec:
       containers:
         - name: backend
-          image: smartdoc-backend:latest
+          image: smartdoc-backend:v16
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 8000
