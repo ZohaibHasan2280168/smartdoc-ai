@@ -19,7 +19,7 @@ spec:
     spec:
       containers:
         - name: frontend
-          image: smartdoc-frontend:v19
+          image: smartdoc-frontend:v22
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 3000
