@@ -5,12 +5,13 @@ services:
     restart: always
     network_mode: "host"
     volumes:
-      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./prometheus:/etc/prometheus:ro
       - prometheus_data:/prometheus
     command:
       - "--config.file=/etc/prometheus/prometheus.yml"
       - "--storage.tsdb.path=/prometheus"
       - "--web.listen-address=0.0.0.0:9090"
+      - "--web.enable-lifecycle"
 
   grafana:
     image: grafana/grafana:10.4.1
@@ -25,6 +26,23 @@ services:
     volumes:
       - grafana_data:/var/lib/grafana
       - ./grafana/provisioning/datasources:/etc/grafana/provisioning/datasources:ro
+
+  node-exporter:
+    image: prom/node-exporter:v1.7.0
+    container_name: smartdoc-node-exporter
+    restart: always
+    network_mode: "host"
+    pid: host
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/rootfs:ro
+    command:
+      - "--path.procfs=/host/proc"
+      - "--path.sysfs=/host/sys"
+      - "--path.rootfs=/rootfs"
+      - "--collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($$|/)"
+      - "--web.listen-address=0.0.0.0:9100"
 
 volumes:
   prometheus_data:

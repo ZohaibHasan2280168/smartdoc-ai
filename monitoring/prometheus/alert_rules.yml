@@ -1,0 +1,25 @@
+groups:
+  - name: smartdoc_production_alerts
+    rules:
+      - alert: BackendServiceDown
+        expr: up{job="smartdoc-backend"} == 0
+        for: 30s
+        labels:
+          severity: critical
+          tier: application
+        annotations:
+          summary: "SmartDoc AI Backend service is DOWN!"
+          description: "Backend target {{ $labels.instance }} has been unreachable for more than 30 seconds."
+
+      - alert: HighHttpErrorRate
+        expr: |
+          ((sum(rate(http_requests_total{job="smartdoc-backend", status=~"5.."}[5m])) or vector(0))
+           /
+           sum(rate(http_requests_total{job="smartdoc-backend"}[5m]))) * 100 > 5
+        for: 1m
+        labels:
+          severity: warning
+          tier: application
+        annotations:
+          summary: "High HTTP 5xx Server Error Rate detected!"
+          description: "5xx error rate is currently at {{ $value | printf \"%.2f\" }}% (SLA threshold: 5%)."
