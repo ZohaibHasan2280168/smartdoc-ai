@@ -1,0 +1,106 @@
+name: SmartDoc AI - Cloud CI/CD to AWS ECR
+
+on:
+  push:
+    branches:
+      - main
+    paths-ignore:
+      - 'k8s/**'
+      - 'README.md'
+      - 'monitoring/**'
+      - 'ansible/**'
+      - 'terraform/**'
+  workflow_dispatch: # Allows manual trigger from GitHub UI anytime
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-push:
+    name: Build & Push to AWS ECR
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Set Image Tag & Registry Variables
+        id: vars
+        run: |
+          # Generate immutable tag using git commit short SHA
+          SHORT_SHA=$(git rev-parse --short HEAD)
+          echo "IMAGE_TAG=sha-${SHORT_SHA}" >> $GITHUB_OUTPUT
+          echo "ECR_REGISTRY=${{ steps.login-ecr.outputs.registry }}" >> $GITHUB_OUTPUT
+
+      - name: Build & Push Backend Image to AWS ECR
+        env:
+          ECR_REGISTRY: ${{ steps.vars.outputs.ECR_REGISTRY }}
+          IMAGE_TAG: ${{ steps.vars.outputs.IMAGE_TAG }}
+        run: |
+          echo "Building SmartDoc AI Backend Docker image..."
+          docker build \
+            -t $ECR_REGISTRY/smartdoc-backend:$IMAGE_TAG \
+            -t $ECR_REGISTRY/smartdoc-backend:latest \
+            ./backend
+
+          echo "Pushing Backend images to AWS ECR..."
+          docker push $ECR_REGISTRY/smartdoc-backend:$IMAGE_TAG
+          docker push $ECR_REGISTRY/smartdoc-backend:latest
+
+      - name: Build & Push Frontend Image to AWS ECR
+        env:
+          ECR_REGISTRY: ${{ steps.vars.outputs.ECR_REGISTRY }}
+          IMAGE_TAG: ${{ steps.vars.outputs.IMAGE_TAG }}
+        run: |
+          echo "Building SmartDoc AI Frontend Docker image..."
+          docker build \
+            --build-arg NEXT_PUBLIC_API_URL=http://localhost:8000 \
+            -t $ECR_REGISTRY/smartdoc-frontend:$IMAGE_TAG \
+            -t $ECR_REGISTRY/smartdoc-frontend:latest \
+            ./frontend
+
+          echo "Pushing Frontend images to AWS ECR..."
+          docker push $ECR_REGISTRY/smartdoc-frontend:$IMAGE_TAG
+          docker push $ECR_REGISTRY/smartdoc-frontend:latest
+
+      - name: Update Kubernetes GitOps Manifests
+        env:
+          ECR_REGISTRY: ${{ steps.vars.outputs.ECR_REGISTRY }}
+          IMAGE_TAG: ${{ steps.vars.outputs.IMAGE_TAG }}
+        run: |
+          echo "Updating k8s deployment manifests with new ECR image tags..."
+          
+          # Replace backend image with new ECR tag
+          sed -i "s|image: .*smartdoc-backend:.*|image: ${ECR_REGISTRY}/smartdoc-backend:${IMAGE_TAG}|g" k8s/backend.yaml
+          
+          # Replace frontend image with new ECR tag
+          sed -i "s|image: .*smartdoc-frontend:.*|image: ${ECR_REGISTRY}/smartdoc-frontend:${IMAGE_TAG}|g" k8s/frontend.yaml
+
+      - name: Commit & Push GitOps Manifests to GitHub
+        env:
+          IMAGE_TAG: ${{ steps.vars.outputs.IMAGE_TAG }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          if git diff --quiet k8s/; then
+            echo "No changes in k8s manifests to commit."
+          else
+            git add k8s/backend.yaml k8s/frontend.yaml
+            git commit -m "chore(gitops): update images to ${IMAGE_TAG} [skip ci]"
+            git push
+            echo "Successfully updated and pushed k8s manifests to GitHub!"
+          fi
