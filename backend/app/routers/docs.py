@@ -7,6 +7,8 @@ from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 from pypdf import PdfReader
+import boto3
+from botocore.exceptions import ClientError
 
 from app.config import settings
 from app.database import get_db
@@ -19,6 +21,7 @@ router = APIRouter(tags=["Document Management"])
 class DocumentResponse(BaseModel):
     id: int
     filename: str
+    file_path: Optional[str] = None
     file_size_bytes: int
     mime_type: str
     summary_preview: Optional[str]
@@ -97,16 +100,40 @@ async def upload_document(
     if not content_text:
         content_text = f"[Empty text extracted from {file.filename}]"
 
-    # Persist file on disk
-    os.makedirs(settings.UPLOAD_DIR, exist_ok=True)
+    # Persist file in Amazon S3 or fallback to local disk
     safe_filename = f"{int(os.times().elapsed * 1000)}_{os.path.basename(file.filename)}"
-    disk_path = os.path.join(settings.UPLOAD_DIR, safe_filename)
-    try:
-        with open(disk_path, "wb") as f:
-            f.write(content_bytes)
-    except Exception as e:
-        logger.error("Failed to write file to disk: %s", e)
-        disk_path = f"/tmp/{safe_filename}"
+    storage_path = None
+
+    if settings.S3_BUCKET_NAME:
+        try:
+            s3_client_kwargs = {"region_name": settings.AWS_REGION}
+            if settings.AWS_ACCESS_KEY_ID and settings.AWS_SECRET_ACCESS_KEY:
+                s3_client_kwargs["aws_access_key_id"] = settings.AWS_ACCESS_KEY_ID
+                s3_client_kwargs["aws_secret_access_key"] = settings.AWS_SECRET_ACCESS_KEY
+
+            s3_client = boto3.client("s3", **s3_client_kwargs)
+            s3_key = f"uploads/{safe_filename}"
+            s3_client.put_object(
+                Bucket=settings.S3_BUCKET_NAME,
+                Key=s3_key,
+                Body=content_bytes,
+                ContentType=file.content_type or "application/octet-stream",
+            )
+            storage_path = f"s3://{settings.S3_BUCKET_NAME}/{s3_key}"
+            logger.info("Successfully uploaded file to Amazon S3: %s", storage_path)
+        except Exception as s3_err:
+            logger.warning("Amazon S3 upload failed or not configured (%s). Falling back to disk storage.", s3_err)
+
+    if not storage_path:
+        os.makedirs(settings.UPLOAD_DIR, exist_ok=True)
+        disk_path = os.path.join(settings.UPLOAD_DIR, safe_filename)
+        try:
+            with open(disk_path, "wb") as f:
+                f.write(content_bytes)
+            storage_path = disk_path
+        except Exception as e:
+            logger.error("Failed to write file to disk: %s", e)
+            storage_path = f"/tmp/{safe_filename}"
 
     # Preview snippet (first 300 chars)
     preview = (content_text[:300] + "...") if len(content_text) > 300 else content_text
@@ -118,7 +145,7 @@ async def upload_document(
     # Persist in DB
     db_doc = Document(
         filename=file.filename,
-        file_path=disk_path,
+        file_path=storage_path,
         file_size_bytes=file_size,
         mime_type=file.content_type or "application/octet-stream",
         content_text=content_text,
@@ -129,11 +156,12 @@ async def upload_document(
     db.commit()
     db.refresh(db_doc)
 
-    logger.info("Successfully ingested document id=%d, name=%s, size=%d bytes", db_doc.id, db_doc.filename, file_size)
+    logger.info("Successfully ingested document id=%d, name=%s, size=%d bytes, storage=%s", db_doc.id, db_doc.filename, file_size, storage_path)
 
     return DocumentResponse(
         id=db_doc.id,
         filename=db_doc.filename,
+        file_path=db_doc.file_path,
         file_size_bytes=db_doc.file_size_bytes,
         mime_type=db_doc.mime_type,
         summary_preview=db_doc.summary_preview,

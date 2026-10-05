@@ -30,6 +30,12 @@ class Settings(BaseSettings):
     # Upload storage directory
     UPLOAD_DIR: str = os.getenv("UPLOAD_DIR", "/tmp/smartdoc_uploads")
     
+    # AWS S3 Storage
+    S3_BUCKET_NAME: Optional[str] = os.getenv("S3_BUCKET_NAME", "smartdoc-storage-zohaib-2026")
+    AWS_REGION: str = os.getenv("AWS_REGION", "us-east-1")
+    AWS_ACCESS_KEY_ID: Optional[str] = os.getenv("AWS_ACCESS_KEY_ID", None)
+    AWS_SECRET_ACCESS_KEY: Optional[str] = os.getenv("AWS_SECRET_ACCESS_KEY", None)
+    
     # CORS
     CORS_ORIGINS: str = "*"
 
