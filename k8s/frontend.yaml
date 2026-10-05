@@ -19,7 +19,7 @@ spec:
     spec:
       containers:
         - name: frontend
-          image: 479537131188.dkr.ecr.us-east-1.amazonaws.com/smartdoc-frontend:sha-3ebeedf
+          image: 479537131188.dkr.ecr.us-east-1.amazonaws.com/smartdoc-frontend:sha-ba32a1c
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 3000
