@@ -103,3 +103,12 @@ jobs:
             git push
             echo "Successfully updated and pushed k8s manifests to GitHub!"
           fi
+
+      - name: Deploy to Live EC2 Demo Server
+        uses: appleboy/ssh-action@v1.0.3
+        continue-on-error: true
+        with:
+          host: ${{ secrets.EC2_HOST || '3.94.149.149' }}
+          username: ubuntu
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: bash /home/ubuntu/deploy.sh
