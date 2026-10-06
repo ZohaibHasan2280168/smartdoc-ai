@@ -143,11 +143,11 @@ export default function FileUpload({
   }, [documents, searchQuery]);
 
   return (
-    <div className="bg-white border border-slate-200 rounded-xl p-5 shadow-xs">
+    <div className="bg-white border border-slate-300 rounded-xl p-5 shadow-sm">
       {/* Panel Header */}
-      <div className="flex items-center justify-between pb-4 border-b border-slate-100 mb-4">
+      <div className="flex items-center justify-between pb-4 border-b border-slate-200 mb-4">
         <div className="flex items-center space-x-2.5">
-          <div className="w-8 h-8 rounded-lg bg-indigo-50 border border-indigo-100 flex items-center justify-center text-indigo-600">
+          <div className="w-8 h-8 rounded-lg bg-indigo-50 border border-indigo-200 flex items-center justify-center text-indigo-700">
             <Database className="w-4 h-4" />
           </div>
           <div>
@@ -159,21 +159,21 @@ export default function FileUpload({
             </p>
           </div>
         </div>
-        <span className="text-[11px] font-mono-code px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-700 border border-slate-200">
+        <span className="text-[11px] font-mono-code px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-700 border border-slate-300 font-medium">
           {documents.length} {documents.length === 1 ? "Doc" : "Docs"} Stored
         </span>
       </div>
 
-      {/* Modern Light Mode Drag & Drop Zone */}
+      {/* Modern High-Contrast Drag & Drop Zone */}
       <div
         onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
         onDragLeave={() => setIsDragging(false)}
         onDrop={handleDrop}
         onClick={() => fileInputRef.current?.click()}
-        className={`border border-dashed rounded-xl p-6 text-center cursor-pointer transition-all duration-200 ${
+        className={`border-2 border-dashed rounded-xl p-6 text-center cursor-pointer transition-all duration-200 ${
           isDragging
-            ? "border-indigo-500 bg-indigo-50/50 scale-[0.99]"
-            : "border-slate-300 hover:border-indigo-400 bg-slate-50/50 hover:bg-slate-50"
+            ? "border-indigo-600 bg-indigo-50/60 scale-[0.99]"
+            : "border-slate-300 hover:border-indigo-500 bg-slate-50/70 hover:bg-indigo-50/20"
         }`}
       >
         <input
@@ -193,7 +193,7 @@ export default function FileUpload({
             <>
               <Loader2 className="w-7 h-7 text-indigo-600 animate-spin" />
               <div>
-                <p className="text-sm font-medium text-slate-800">
+                <p className="text-sm font-semibold text-slate-800">
                   Processing & Streaming to S3...
                 </p>
                 <p className="text-xs text-slate-500 mt-0.5 font-mono">
@@ -203,18 +203,18 @@ export default function FileUpload({
             </>
           ) : (
             <>
-              <div className="w-11 h-11 rounded-full bg-white border border-slate-200 flex items-center justify-center text-indigo-600 shadow-xs">
+              <div className="w-11 h-11 rounded-full bg-white border border-slate-300 flex items-center justify-center text-indigo-600 shadow-xs">
                 <UploadCloud className="w-5 h-5" />
               </div>
               <div>
-                <p className="text-sm font-medium text-slate-800">
-                  <span className="text-indigo-600 font-semibold hover:underline">
-                    Upload a file
+                <p className="text-sm font-semibold text-slate-800">
+                  <span className="text-indigo-600 underline decoration-indigo-300 underline-offset-2">
+                    Click to browse
                   </span>{" "}
                   or drag and drop
                 </p>
                 <p className="text-xs text-slate-500 mt-1">
-                  PDF, TXT, MD, JSON, LOG, YAML (Up to 20 MB)
+                  PDF, TXT, MD, JSON, LOG, YAML (Max 20 MB)
                 </p>
               </div>
             </>
@@ -224,14 +224,14 @@ export default function FileUpload({
 
       {/* Error Alert */}
       {uploadError && (
-        <div className="mt-3.5 p-3 bg-rose-50 border border-rose-200 rounded-lg flex items-start justify-between text-rose-700 text-xs">
+        <div className="mt-3.5 p-3 bg-rose-50 border border-rose-300 rounded-lg flex items-start justify-between text-rose-800 text-xs font-medium">
           <div className="flex items-center space-x-2">
             <AlertCircle className="w-4 h-4 flex-shrink-0 text-rose-600 mt-0.5" />
             <span>{uploadError}</span>
           </div>
           <button 
             onClick={() => setUploadError(null)}
-            className="text-rose-500 hover:text-rose-700 p-0.5 ml-2"
+            className="text-rose-500 hover:text-rose-800 p-0.5 ml-2"
           >
             <X className="w-3.5 h-3.5" />
           </button>
@@ -241,27 +241,27 @@ export default function FileUpload({
       {/* Document Search & Repository List */}
       <div className="mt-5">
         <div className="flex items-center justify-between gap-2 mb-2.5">
-          <span className="text-xs font-semibold text-slate-700 uppercase tracking-wider">
+          <span className="text-xs font-bold text-slate-700 uppercase tracking-wider">
             Repository Documents
           </span>
           {documents.length > 3 && (
             <div className="relative w-44">
-              <Search className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2" />
+              <Search className="w-3.5 h-3.5 text-slate-500 absolute left-2.5 top-1/2 -translate-y-1/2" />
               <input
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Filter files..."
-                className="w-full pl-8 pr-2 py-1 text-xs bg-slate-50 border border-slate-200 rounded-md text-slate-800 placeholder-slate-400 focus:outline-none focus:border-indigo-500"
+                className="w-full pl-8 pr-2 py-1 text-xs bg-slate-50 border border-slate-300 rounded-md text-slate-900 placeholder-slate-500 focus:outline-none focus:border-indigo-600"
               />
             </div>
           )}
         </div>
 
         {documents.length === 0 ? (
-          <div className="text-center py-7 border border-slate-200 rounded-xl bg-slate-50/50 text-slate-500 text-xs">
+          <div className="text-center py-7 border border-slate-200 rounded-xl bg-slate-50 text-slate-600 text-xs">
             <FileText className="w-6 h-6 text-slate-400 mx-auto mb-1.5" />
-            <p className="font-medium text-slate-700">No documents in repository</p>
+            <p className="font-semibold text-slate-700">No documents in repository</p>
             <p className="text-slate-500 text-[11px] mt-0.5">Upload a specification, log file, or document above to begin analysis.</p>
           </div>
         ) : (
@@ -274,22 +274,22 @@ export default function FileUpload({
                   onClick={() => onDocumentSelect(doc.id)}
                   className={`flex items-center justify-between p-3 rounded-lg border text-xs cursor-pointer transition-all ${
                     isSelected
-                      ? "bg-indigo-50/80 border-indigo-300 text-slate-900 shadow-xs"
-                      : "bg-white border-slate-200 text-slate-700 hover:bg-slate-50 hover:border-slate-300"
+                      ? "bg-indigo-50 border-indigo-400 text-slate-900 shadow-xs ring-1 ring-indigo-400"
+                      : "bg-slate-50/80 border-slate-200 text-slate-700 hover:bg-slate-100 hover:border-slate-300"
                   }`}
                 >
                   <div className="flex items-center space-x-3 min-w-0 pr-2">
                     {isSelected ? (
-                      <div className="w-7 h-7 rounded-md bg-indigo-100 border border-indigo-200 flex items-center justify-center text-indigo-700 flex-shrink-0">
+                      <div className="w-7 h-7 rounded-md bg-indigo-100 border border-indigo-300 flex items-center justify-center text-indigo-700 flex-shrink-0">
                         <FileCheck className="w-4 h-4" />
                       </div>
                     ) : (
-                      <div className="w-7 h-7 rounded-md bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-500 flex-shrink-0">
+                      <div className="w-7 h-7 rounded-md bg-white border border-slate-300 flex items-center justify-center text-slate-500 flex-shrink-0">
                         <FileText className="w-4 h-4" />
                       </div>
                     )}
                     <div className="truncate">
-                      <p className="font-medium truncate text-slate-900">
+                      <p className="font-semibold truncate text-slate-900">
                         {doc.filename}
                       </p>
                       <p className="text-[11px] text-slate-500 font-mono-code mt-0.5">
@@ -300,8 +300,8 @@ export default function FileUpload({
 
                   <div className="flex items-center space-x-2 flex-shrink-0">
                     {isSelected && (
-                      <span className="bg-indigo-100 text-indigo-800 px-2 py-0.5 rounded text-[10px] font-mono-code border border-indigo-200 font-medium">
-                        SELECTED
+                      <span className="bg-indigo-600 text-white px-2 py-0.5 rounded text-[10px] font-mono-code font-bold shadow-xs">
+                        ACTIVE
                       </span>
                     )}
                     <button
