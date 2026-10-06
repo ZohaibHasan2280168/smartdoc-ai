@@ -19,7 +19,7 @@ spec:
     spec:
       containers:
         - name: frontend
-          image: 479537131188.dkr.ecr.us-east-1.amazonaws.com/smartdoc-frontend:sha-d2fc273
+          image: 479537131188.dkr.ecr.us-east-1.amazonaws.com/smartdoc-frontend:sha-fb2a43e
           imagePullPolicy: IfNotPresent
           command: ["/bin/sh", "-c"]
           args:
