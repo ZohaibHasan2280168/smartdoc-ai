@@ -49,7 +49,7 @@ spec:
     spec:
       containers:
         - name: backend
-          image: 479537131188.dkr.ecr.us-east-1.amazonaws.com/smartdoc-backend:sha-114add9
+          image: 479537131188.dkr.ecr.us-east-1.amazonaws.com/smartdoc-backend:sha-8695fe7
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 8000
