@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
-import { Terminal, Trash2, Activity, Copy, Check, Filter } from "lucide-react";
+import { Terminal, Trash2, Activity, Copy, Check } from "lucide-react";
 
 export default function AIConsole({ logs = [], onClearLogs }) {
   const [filter, setFilter] = useState("ALL");
@@ -59,27 +59,27 @@ export default function AIConsole({ logs = [], onClearLogs }) {
   };
 
   return (
-    <div className="bg-[#0f172a]/90 border border-slate-800/90 rounded-xl shadow-lg shadow-black/20 flex flex-col h-full overflow-hidden backdrop-blur-sm">
+    <div className="bg-white border border-slate-200 rounded-xl shadow-xs flex flex-col h-full overflow-hidden">
       {/* Console Header */}
-      <div className="bg-slate-900/60 px-4 py-3 border-b border-slate-800/80 flex items-center justify-between">
+      <div className="bg-white px-4 py-3 border-b border-slate-100 flex items-center justify-between">
         <div className="flex items-center space-x-2.5">
-          <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></div>
-          <span className="text-xs font-mono-code font-semibold tracking-wider text-slate-200">
+          <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
+          <span className="text-xs font-mono-code font-semibold tracking-wider text-slate-800">
             MICROSERVICE LIVE TELEMETRY
           </span>
         </div>
 
         <div className="flex items-center space-x-2">
           {/* Level Filter Tabs */}
-          <div className="flex rounded-md bg-slate-950/80 p-0.5 border border-slate-800 text-[10px] font-mono-code">
+          <div className="flex rounded-md bg-slate-100 p-0.5 border border-slate-200 text-[10px] font-mono-code">
             {["ALL", "INFO", "METRIC", "ERROR"].map((lvl) => (
               <button
                 key={lvl}
                 onClick={() => setFilter(lvl)}
                 className={`px-2 py-0.5 rounded transition-all ${
                   filter === lvl
-                    ? "bg-slate-800 text-slate-100 font-semibold shadow-xs"
-                    : "text-slate-400 hover:text-slate-200"
+                    ? "bg-white text-slate-900 font-semibold shadow-xs"
+                    : "text-slate-500 hover:text-slate-800"
                 }`}
               >
                 {lvl}
@@ -89,15 +89,15 @@ export default function AIConsole({ logs = [], onClearLogs }) {
 
           <button
             onClick={copyToClipboard}
-            className="p-1.5 text-slate-400 hover:text-slate-200 hover:bg-slate-800/80 rounded transition-colors"
+            className="p-1.5 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded transition-colors"
             title="Copy logs to clipboard"
           >
-            {copied ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
+            {copied ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
           </button>
 
           <button
             onClick={onClearLogs}
-            className="p-1.5 text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 rounded transition-colors"
+            className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded transition-colors"
             title="Clear console"
           >
             <Trash2 className="w-3.5 h-3.5" />
@@ -106,14 +106,14 @@ export default function AIConsole({ logs = [], onClearLogs }) {
       </div>
 
       {/* Terminal Stream Body */}
-      <div className="p-4 font-mono-code text-[11px] leading-relaxed overflow-y-auto flex-1 bg-[#090d16]/95 space-y-2 min-h-[260px] max-h-[360px]">
+      <div className="p-4 font-mono-code text-[11px] leading-relaxed overflow-y-auto flex-1 bg-[#090d16] space-y-2 min-h-[260px] max-h-[360px]">
         {filteredLogs.length === 0 ? (
           <div className="text-slate-500 italic py-10 text-center text-xs">
             Awaiting microservice RPC events... Ingest a document or execute a query to view live traces.
           </div>
         ) : (
           filteredLogs.map((log, idx) => (
-            <div key={idx} className="flex items-start space-x-2 border-b border-slate-900/40 pb-1.5">
+            <div key={idx} className="flex items-start space-x-2 border-b border-slate-900/60 pb-1.5">
               <span className="text-slate-500 select-none text-[10px] flex-shrink-0">
                 {log.timestamp}
               </span>
@@ -127,9 +127,9 @@ export default function AIConsole({ logs = [], onClearLogs }) {
       </div>
 
       {/* Console Status Bar */}
-      <div className="bg-slate-900/50 px-4 py-2 border-t border-slate-800/80 flex items-center justify-between text-[11px] text-slate-400 font-mono-code">
+      <div className="bg-slate-50 px-4 py-2 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-500 font-mono-code">
         <div className="flex items-center space-x-1.5">
-          <Activity className="w-3.5 h-3.5 text-indigo-400" />
+          <Activity className="w-3.5 h-3.5 text-indigo-600" />
           <span>Prometheus Scrape: Active</span>
         </div>
         <div>
