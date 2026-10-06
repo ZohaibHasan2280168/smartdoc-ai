@@ -44,7 +44,26 @@ export default function SmartDocDashboard() {
     }
   ]);
 
-  const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+  const getApiBase = () => {
+    if (typeof window !== "undefined") {
+      const hostname = window.location.hostname;
+      // If accessed via public IP (e.g. EC2 server: 3.94.149.149):
+      if (/^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$/.test(hostname)) {
+        return `${window.location.protocol}//${hostname}:8000`;
+      }
+      // If on AWS ELB, relative path /api (proxied via Next.js rewrites):
+      if (hostname.includes("elb.amazonaws.com")) {
+        return "";
+      }
+      // If not localhost or 127.0.0.1, use port 8000 on same host:
+      if (hostname !== "localhost" && hostname !== "127.0.0.1") {
+        return `${window.location.protocol}//${hostname}:8000`;
+      }
+    }
+    return process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+  };
+
+  const API_BASE = getApiBase();
 
   const addLog = useCallback((level, source, message) => {
     const newLog = {

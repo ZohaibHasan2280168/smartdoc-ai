@@ -27,8 +27,8 @@ spec:
           env:
             - name: NODE_ENV
               value: "production"
-            - name: NEXT_PUBLIC_API_URL
-              value: "http://localhost:8000"
+            - name: INTERNAL_BACKEND_URL
+              value: "http://backend.smartdoc-ai.svc.cluster.local:8000"
           resources:
             requests:
               memory: "128Mi"
@@ -57,11 +57,10 @@ metadata:
   labels:
     app: frontend
 spec:
-  type: NodePort
+  type: LoadBalancer
   ports:
-    - port: 3000
+    - port: 80
       targetPort: 3000
-      nodePort: 30080
       name: http
   selector:
     app: frontend

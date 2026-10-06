@@ -67,7 +67,6 @@ jobs:
         run: |
           echo "Building SmartDoc AI Frontend Docker image..."
           docker build \
-            --build-arg NEXT_PUBLIC_API_URL=http://localhost:8000 \
             -t $ECR_REGISTRY/smartdoc-frontend:$IMAGE_TAG \
             -t $ECR_REGISTRY/smartdoc-frontend:latest \
             ./frontend

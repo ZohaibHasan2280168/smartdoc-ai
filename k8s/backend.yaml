@@ -6,10 +6,12 @@ metadata:
 data:
   PROJECT_NAME: "SmartDoc AI Backend"
   ENVIRONMENT: "production"
-  DATABASE_URL: "postgresql://postgres:postgres@postgres.smartdoc-ai.svc.cluster.local:5432/smartdoc_db"
+  DATABASE_URL: "postgresql://postgres:SmartDoc2026Secure!@smartdoc-db.cu7qimoo0rm4.us-east-1.rds.amazonaws.com:5432/smartdoc"
   REDIS_URL: "redis://redis.smartdoc-ai.svc.cluster.local:6379/0"
   CORS_ORIGINS: "*"
   OPENAI_MODEL: "gpt-3.5-turbo"
+  S3_BUCKET_NAME: "smartdoc-storage-zohaib-2026"
+  AWS_REGION: "us-east-1"
 ---
 apiVersion: v1
 kind: Secret
@@ -19,6 +21,8 @@ metadata:
 type: Opaque
 stringData:
   OPENAI_API_KEY: ""
+  AWS_ACCESS_KEY_ID: ""
+  AWS_SECRET_ACCESS_KEY: ""
 ---
 apiVersion: apps/v1
 kind: Deployment

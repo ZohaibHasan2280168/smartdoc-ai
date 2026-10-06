@@ -1,0 +1,40 @@
+apiVersion: eksctl.io/v1alpha5
+kind: ClusterConfig
+
+metadata:
+  name: smartdoc-eks-v2
+  region: us-east-1
+  version: "1.31"
+
+vpc:
+  id: "vpc-07f6f57a4c7245788"
+  subnets:
+    public:
+      us-east-1a:
+        id: "subnet-03bffc09caeee371f"
+      us-east-1b:
+        id: "subnet-0f6ede4cc98ad48a8"
+    private:
+      us-east-1a:
+        id: "subnet-0e7f986789fe2552c"
+      us-east-1b:
+        id: "subnet-0d6faf157d36f1739"
+
+managedNodeGroups:
+  - name: standard-workers
+    instanceType: t3.small
+    desiredCapacity: 2
+    minSize: 1
+    maxSize: 2
+    subnets:
+      - subnet-03bffc09caeee371f
+      - subnet-0f6ede4cc98ad48a8
+    volumeSize: 20
+    ssh:
+      allow: true
+      publicKeyName: smartdoc-key
+    iam:
+      withAddonPolicies:
+        imageBuilder: true
+        autoScaler: true
+        albIngress: true
